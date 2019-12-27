@@ -1,0 +1,32 @@
+裁剪图片：magick image.png -crop 2160x2160+0+0 %3d.jpg
+多张图片合成avi：ffmpeg -f image2 -i %3d.jpg -vcodec libx264 -r 50 1.avi
+****************多张图片合成MP4：ffmpeg -i %3d.jpg -an -r 60 -filter:v "setpts=0.25*PTS" 1.mp4******************
+视频转图片：ffmpeg -i xxx.mp4 -r 1 -f image2 image-%3d.jpg
+
+视频加速：ffmpeg -i 1.mp4 -an -r 60 -filter:v "setpts=0.25*PTS" output.mp4
+
+视频用ts拼接：
+ffmpeg -i 1.mp4 -vcodec copy -acodec copy -vbsf h264_mp4toannexb 1.ts
+ffmpeg -i 2.mp4 -vcodec copy -acodec copy -vbsf h264_mp4toannexb 2.ts
+.....
+ffmpeg -i "concat:1.ts|2.ts|3.ts|4.ts|5.ts|6.ts|7.ts|8.ts|over.ts" -acodec copy -vcodec copy -absf aac_adtstoasc 54781.mp4
+
+截取音乐：ffmpeg -i Music.mp3 -ss 00:00:25 -t 00:00:45 -acodec copy 1.mp3
+
+合成：ffmpeg -i 54781.mp4 -i 1.mp3 -c:v copy -c:a aac -strict experimental output.mp4
+
+视频加水印：ffmpeg -i 1.mp4 -ignore_loop 0 -i logo.gif -filter_complex  "[0:v][1:v]overlay=10:10:shortest=1" out.mp4
+
+并列播放两视频
+ffmpeg -i 1.mp4 -i 2.mp4 -filter_complex "[1:v]scale=w=1000:h=1000:force_original_aspect_ratio=decrease[ckout];[0:v][ckout]overlay=x=W-w-10:y=0[out]" -map "[out]" -movflags faststart 3.mp4
+
+左右合并
+ffmpeg -i 1.mp4 -vf "[in] scale=iw/2:ih/2, pad=2*iw:ih [left];?movie='2.mp4', scale=iw/2:ih/2 [right];[left][right] overlay=main_w/2:0 [out]" -b:v 768k output.mp4
+
+上下合并
+ffmpeg -i 1.mp4 -vf "[in] scale=iw/2:ih/2, pad=iw:2*ih [top];?movie='2.mp4', scale=iw/2:ih/2 [bottom];[top][bottom] overlay=0:main_h/2 [out]" -b:v 768k output.mp4
+
+跑马灯
+ffmpeg -i 1.mp4 -filter_complex [0:v][1:v]overlay=x='if(gte(t,0),-w+(mod(n, W+w))+5, NAN)':y=0[out] out.mp4
+
+改变gif大小 magick logo.gif -coalesce -resize 300x64! 1.gif

@@ -1,0 +1,10 @@
+#!/usr/bin/env node
+const startup = require('../src/server/startup');
+
+async function start() {
+  await startup.start();
+}
+
+(async () => {
+  await start();
+})();

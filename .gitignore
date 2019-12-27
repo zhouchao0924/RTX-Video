@@ -1,0 +1,11 @@
+.DS_Store
+dist/*
+coverage
+node_modules/
+thumbs.db
+!.gitkeep
+.idea
+.vscode
+*.jpg
+logs/
+src/routes/ImageSpace/49849/4430/video/1.mp4

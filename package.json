@@ -1,0 +1,26 @@
+{
+  "name": "iray-master-bridge",
+  "version": "0.0.1",
+  "author": "qinning <qinning.qn@gmail.com>",
+  "description": "iray-master-bridge",
+  "license": "MIT",
+  "scripts": {
+    "start": "node ./bin/start"
+  },
+  "dependencies": {
+    "agile-log": "^1.0.5",
+    "commander": "^2.20.0",
+    "cookie-parser": "^1.4.4",
+    "express": "^4.17.1",
+    "ffmpeg-concat": "^1.0.13",
+    "gl": "^4.3.3",
+    "node-gyp": "^5.0.3",
+    "prebuild-install": "^5.3.0",
+    "rebuild": "^0.1.2",
+    "shelljs": "^0.8.3"
+  },
+  "engines": {
+    "node": ">= 6.0.0",
+    "npm": ">= 3.0.0"
+  }
+}

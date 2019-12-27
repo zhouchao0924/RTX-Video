@@ -1,0 +1,30 @@
+{
+  "serverPort": 5001,
+  "nacos": {
+    "serverAddr": "nacos.ihomefnt.com:80",
+    "namespace": "6a2ba9eb-8c87-4f2a-b17e-80ac175efd26",
+    "dataId": "cloudrendering-irayMaster",
+    "group": "DEFAULT_GROUP"
+  },
+  "rocketmq": {
+    "nameSrv": "192.168.8.58:9876"
+  },
+  "topics": {
+    "irayEvent": "cloudrendering-iray-event",
+    "send2TaskTopic": "iray_schedule_render_scene_test"
+  },
+  "discovery": {
+    "serviceName": "cloudrendering-irayMaster",
+    "sidecar": {
+      "port": 9090
+    },
+    "offlineServer": {}
+  },
+  "hostConfigFile": "/etc/ihomeconf/config.ini",
+  "irayDbFile": "/opt/ihome/iray/iray_server.db",
+  "schedule": {
+    "delay": {
+      "scanJobDelay": 3000
+    }
+  }
+}
