@@ -103,7 +103,8 @@ function callback(SolutionId, url) {
     videoUrl: url
   };
   const options = {
-    url: 'http://irayproxy.sit.ihomefnt.org/collectVideoResult',
+    url: 'https://irayproxy.ihomefnt.com/collectVideoResult',
+    //url: 'http://irayproxy.sit.ihomefnt.org/collectVideoResult',//sit环境
     method: 'POST',
     json: true,
     headers: {
@@ -129,7 +130,8 @@ function callback(SolutionId, url) {
 // 上传视频
 function UploadMP4(FilePath) {
   let sbody = '';
-  const upload = request.post(' http://192.168.1.13:11133/unifyfile/file/drGeneralUpload');
+  const upload = request.post('https://unify-file.ihomefnt.com/unifyfile/file/drGeneralUpload');
+  //const upload = request.post(' http://192.168.1.13:11133/unifyfile/file/drGeneralUpload');//sit环境
   upload.setHeader('content-type', 'multipart/form-data');
   const form = upload.form();
   form.append('file', fs.createReadStream(`${FilePath}`));
