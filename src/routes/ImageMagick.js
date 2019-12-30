@@ -259,7 +259,7 @@ async function ImagemagickInit() {
 }
 
 router.get('/ImageMagick', async (req, res) => {
-  Path = "D:/RTX/ajdr/Saved";
+  Path = "D:/UnrealProjects/RTX/WindowsNoEditor/ajdr/Saved";
   jobId = req.query.jobId;
   SolutionId = req.query.solutionId;
   StyleId = req.query.styleId;
