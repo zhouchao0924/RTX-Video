@@ -173,7 +173,7 @@ async function AddMusic(Filepath) {
   await exec(cmdstring4);
 
   //上传视频
-  //UploadMP4(`${delpath}/${SolutionId}-output.mp4`);
+  UploadMP4(`${delpath}/${SolutionId}-output.mp4`);
 }
 
 // 获取视频时长和分辨率
@@ -247,7 +247,7 @@ async function ImagemagickInit() {
     const cmd2 = `ffmpeg -i ${SolutionRoomDirPath}/1.mp4 -vcodec copy -acodec copy -vbsf h264_mp4toannexb ${SolutionRoomDirPath}/1.ts`;
     await exec(cmd2);
     if (index === components.length - 1) {
-      AllTsPath = AllTsPath + `${SolutionRoomDirPath}/1.ts`;
+      AllTsPath = AllTsPath + `${SolutionRoomDirPath}/1.ts|${RootPath}/3840.ts`;
     } else {
       AllTsPath = AllTsPath + `${SolutionRoomDirPath}/1.ts|`;
     }
