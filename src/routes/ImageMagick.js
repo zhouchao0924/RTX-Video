@@ -115,6 +115,8 @@ function callback(SolutionId, url) {
         complete(`${SolutionId}任务结束,上传回执完成`);
         //只有成功之后才能删除UE4下面的目录
         deleteFolder(`${Path}/MoviePicture/${SolutionId}`);
+        const IniDirPath = path.join(__dirname, `NoComplete.txt`);
+        deleteFolder(IniDirPath);
       } else {
         complete('回执上传失败');
       }
