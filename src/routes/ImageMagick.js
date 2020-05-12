@@ -30,6 +30,7 @@ let jobId;//任务id
 let SolutionId;//方案id
 let StyleId;//风格ID
 let RootPath;//node工程imagesapce的根目录
+let Isbusy;//判断当前进程是否忙碌
 
 // 执行cmd命令
 function exec(cmd) {
@@ -88,7 +89,10 @@ function deleteFolder(solutionpath) {
 // 完成和失败都要做的错误处理
 function complete(logs) {
   log.info(logs);
-  deleteFolder(delpath);
+  setTimeout(() => {
+    deleteFolder(delpath);
+    Isbusy = false;
+  }, 3000);
 }
 
 // 上传完成后，给后台的回执
@@ -263,37 +267,38 @@ async function ImagemagickInit() {
 }
 
 router.get('/ImageMagick', async (req, res) => {
-  Path = "E:/RTX/WindowsNoEditor/ajdr/Saved";//线上使用
-  jobId = req.query.jobId;
-  SolutionId = Number(req.query.solutionId);
-  StyleId = req.query.styleId;
-  res.send('success');
+  if (!Isbusy) {
+    Path = "D:/RTX/WindowsNoEditor/ajdr/Saved";//线上使用
+    jobId = req.query.jobId;
+    SolutionId = Number(req.query.solutionId);
+    StyleId = req.query.styleId;
+    res.send('success');
+    Isbusy = true;
+    //写入一个记录文件，防止任务失败
+    const IniDirPath = path.join(__dirname, `NoComplete.txt`);
+    let obj = {
+      Path: "",
+      jobId: "",
+      SolutionId: 0,
+      StyleId: "",
+    };
+    obj.Path = Path;
+    obj.jobId = jobId;
+    obj.SolutionId = SolutionId;
+    obj.StyleId = StyleId;
+    //转换成字符串写入
+    let WriteContent = JSON.stringify(obj);
+    fs.writeFile(IniDirPath, `${WriteContent}`, function (err) {
+      if (err) {
+        return log.info(`方案${SolutionId}创建记录文件失败`);
+      }
+      log.info(`内容文件记录成功`);
+    });
 
-  //写入一个记录文件，防止任务失败
-  const IniDirPath = path.join(__dirname, `NoComplete.txt`);
-  let obj = {
-    Path: "",
-    jobId: "",
-    SolutionId: 0,
-    StyleId: "",
+    //开始执行任务
+    ImagemagickInit();
   };
-  obj.Path = Path;
-  obj.jobId = jobId;
-  obj.SolutionId = SolutionId;
-  obj.StyleId = StyleId;
-  //转换成字符串写入
-  let WriteContent = JSON.stringify(obj);
-  fs.writeFile(IniDirPath, `${WriteContent}`, function (err) {
-    if (err) {
-      return log.info(`方案${SolutionId}创建记录文件失败`);
-    }
-    log.info(`内容文件记录成功`);
-  });
-
-  //开始执行任务
-  ImagemagickInit();
 });
-
 
 function Init() {
   const IniDirPath = path.join(__dirname, `NoComplete.txt`);
