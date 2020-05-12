@@ -1,4 +1,4 @@
-/* eslint-disable no-await-in-loop1 */
+﻿/* eslint-disable no-await-in-loop1 */
 const express = require('express');
 
 const router = express.Router();
@@ -20,8 +20,6 @@ const log = agileLog.getLogger('app');
 const ffmpeg = 'ffmpeg';
 
 const magick = 'magick';
-
-const concat = require('ffmpeg-concat');
 
 const exectime = require('child_process').exec;
 
@@ -103,8 +101,7 @@ function callback(SolutionId, url) {
     videoUrl: url
   };
   const options = {
-    url: 'https://irayproxy.ihomefnt.com/collectVideoResult',
-    //url: 'http://irayproxy.sit.ihomefnt.org/collectVideoResult',//sit环境
+    url: 'https://iray-quartz.ihomefnt.com/iray-quartz/collectVideoResult',
     method: 'POST',
     json: true,
     headers: {
@@ -131,7 +128,6 @@ function callback(SolutionId, url) {
 function UploadMP4(FilePath) {
   let sbody = '';
   const upload = request.post('https://unify-file.ihomefnt.com/unifyfile/file/drGeneralUpload');
-  //const upload = request.post(' http://192.168.1.13:11133/unifyfile/file/drGeneralUpload');//sit环境
   upload.setHeader('content-type', 'multipart/form-data');
   const form = upload.form();
   form.append('file', fs.createReadStream(`${FilePath}`));
@@ -225,50 +221,98 @@ async function ImagemagickInit() {
   //获取指定路径下所有的文件夹名
   let components = [];
   let AllTsPath = "";
-  const files = fs.readdirSync(`${Path}/MoviePicture/${SolutionId}`)
-  files.forEach(function (item, index) {
-    let stat = fs.lstatSync(`${Path}/MoviePicture/${SolutionId}/` + item)
-    if (stat.isDirectory() === true) {
-      components.push(item);
-    }
-  })
+  if (fs.existsSync(`${Path}/MoviePicture/${SolutionId}`)) {
+    const files = fs.readdirSync(`${Path}/MoviePicture/${SolutionId}`)
+    files.forEach(function (item, index) {
+      let stat = fs.lstatSync(`${Path}/MoviePicture/${SolutionId}/` + item)
+      if (stat.isDirectory() === true) {
+        components.push(item);
+      }
+    })
 
-  //在Node中创建对应的文件夹
-  await CreateSolutiondir(SolutionId, components);
+    //在Node中创建对应的文件夹
+    await CreateSolutiondir(SolutionId, components);
 
-  const SolutionDirPath = path.join(__dirname, `ImageSpace/${SolutionId}`);
-  // 按空间文件夹处理图片，每个空间生成视频1.mp4
-  for (let index = 0; index < components.length; index += 1) {
-    //创建视频接收目录
-    const SolutionRoomDirPath = path.join(SolutionDirPath, `${components[index]}`);
-    //从UE图片目录生成视频到接收目录
-    const cmd1 = `ffmpeg -i ${Path}/MoviePicture//${SolutionId}/${components[index]}/%6d.jpg ${SolutionRoomDirPath}/1.mp4`;
-    await exec(cmd1);
-    const cmd2 = `ffmpeg -i ${SolutionRoomDirPath}/1.mp4 -vcodec copy -acodec copy -vbsf h264_mp4toannexb ${SolutionRoomDirPath}/1.ts`;
-    await exec(cmd2);
-    if (index === components.length - 1) {
-      AllTsPath = AllTsPath + `${SolutionRoomDirPath}/1.ts|${RootPath}/3840.ts`;
-    } else {
-      AllTsPath = AllTsPath + `${SolutionRoomDirPath}/1.ts|`;
+    const SolutionDirPath = path.join(__dirname, `ImageSpace/${SolutionId}`);
+    // 按空间文件夹处理图片，每个空间生成视频1.mp4
+    for (let index = 0; index < components.length; index += 1) {
+      //创建视频接收目录
+      const SolutionRoomDirPath = path.join(SolutionDirPath, `${components[index]}`);
+      //从UE图片目录生成视频到接收目录
+      const cmd1 = `ffmpeg -i ${Path}/MoviePicture//${SolutionId}/${components[index]}/%6d.jpg ${SolutionRoomDirPath}/1.mp4`;
+      await exec(cmd1);
+      const cmd2 = `ffmpeg -i ${SolutionRoomDirPath}/1.mp4 -vcodec copy -acodec copy -vbsf h264_mp4toannexb ${SolutionRoomDirPath}/1.ts`;
+      await exec(cmd2);
+      if (index === components.length - 1) {
+        AllTsPath = AllTsPath + `${SolutionRoomDirPath}/1.ts|${RootPath}/3840.ts`;
+      } else {
+        AllTsPath = AllTsPath + `${SolutionRoomDirPath}/1.ts|`;
+      }
     }
+    //视频全部执行完以后获取ts
+    const cmd3 = `ffmpeg -y -i "concat:${AllTsPath}" -acodec copy -vcodec copy -absf aac_adtstoasc ${SolutionDirPath}/${SolutionId}-AllNo.mp4`;
+    await exec(cmd3);
+
+    //获取视频总时长，准备加音乐
+    getvideotimeandsize(`${SolutionDirPath}/${SolutionId}-AllNo.mp4`);
+  } else {
+    complete('源文件路径不存在');
   }
-  //视频全部执行完以后获取ts
-  const cmd3 = `ffmpeg -y -i "concat:${AllTsPath}" -acodec copy -vcodec copy -absf aac_adtstoasc ${SolutionDirPath}/${SolutionId}-AllNo.mp4`;
-  await exec(cmd3);
-
-  //获取视频总时长，准备加音乐
-  getvideotimeandsize(`${SolutionDirPath}/${SolutionId}-AllNo.mp4`);
 }
 
 router.get('/ImageMagick', async (req, res) => {
-  Path = "D:/UnrealProjects/RTX/WindowsNoEditor/ajdr/Saved";
+  Path = "E:/RTX/WindowsNoEditor/ajdr/Saved";//线上使用
   jobId = req.query.jobId;
-  SolutionId = req.query.solutionId;
+  SolutionId = Number(req.query.solutionId);
   StyleId = req.query.styleId;
   res.send('success');
+
+  //写入一个记录文件，防止任务失败
+  const IniDirPath = path.join(__dirname, `NoComplete.txt`);
+  let obj = {
+    Path: "",
+    jobId: "",
+    SolutionId: 0,
+    StyleId: "",
+  };
+  obj.Path = Path;
+  obj.jobId = jobId;
+  obj.SolutionId = SolutionId;
+  obj.StyleId = StyleId;
+  //转换成字符串写入
+  let WriteContent = JSON.stringify(obj);
+  fs.writeFile(IniDirPath, `${WriteContent}`, function (err) {
+    if (err) {
+      return log.info(`方案${SolutionId}创建记录文件失败`);
+    }
+    log.info(`内容文件记录成功`);
+  });
 
   //开始执行任务
   ImagemagickInit();
 });
+
+
+function Init() {
+  const IniDirPath = path.join(__dirname, `NoComplete.txt`);
+  //如果文件存在，在上一次生成过程中失败了，读取文件内容，重新开始
+  if (fs.existsSync(IniDirPath)) {
+    fs.readFile(IniDirPath, 'utf-8', function (err, data) {
+      if (err) {
+        log.info(`内容文件读取失败`);
+      } else {
+        let strToObj = JSON.parse(data);
+        Path = strToObj.Path;//线上使用
+        jobId = strToObj.jobId;
+        SolutionId = strToObj.SolutionId;
+        StyleId = strToObj.StyleId;
+        //读取关键信息重新开始任务
+        ImagemagickInit();
+      }
+    });
+  }
+}
+
+Init();
 
 module.exports = router;
